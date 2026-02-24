@@ -52,7 +52,7 @@ def inference_worker(model_key, audio_path, return_dict):
             use_itn=True,
         )
         
-# 4. 传回结果
+        # 4. 传回结果
         if result and isinstance(result, list) and len(result) > 0:
             first_item = result[0]
             if isinstance(first_item, dict) and "text" in first_item:

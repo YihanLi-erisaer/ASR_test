@@ -42,7 +42,7 @@ with gr.Blocks(title="语音识别 (ASR) 系统") as demo:
             
             # 模型选择下拉框
             model_dropdown = gr.Dropdown(
-                choices=["sensevoice", "funasr", "paraformer", "whisperturbo", "whisper", "qwenaudio"], 
+                choices=["sensevoice", "paraformer"], 
                 value="sensevoice", 
                 label="选择识别模型"
             )
@@ -65,4 +65,4 @@ with gr.Blocks(title="语音识别 (ASR) 系统") as demo:
 
 if __name__ == "__main__":
     # 启动 UI
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(share=True, server_name="0.0.0.0", server_port=7860)

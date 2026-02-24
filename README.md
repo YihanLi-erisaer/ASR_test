@@ -12,7 +12,7 @@ python asr_api_windows.py
 
 # Access the API documentation at:
 http://127.0.0.1:8000/docs
-http://192.168.100.185:8000/docs
+http://192.168.100.183:8000/docs
 
 **Install the UI dependencies:**
 pip install gradio requests
@@ -27,6 +27,7 @@ python -m uvicorn asr_api_windows:app --host 0.0.0.0 --port 8000
 ## Finally, run the UI (make sure the API server is running first)
 python asr_ui.py
 
-## Access the UI at:
+## Access the UI at (Local access):
 http://127.0.0.1:7860/
+http://(ipv4 address):7860/
 
