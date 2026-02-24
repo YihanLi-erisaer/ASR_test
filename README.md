@@ -1,3 +1,7 @@
+# install the environment and dependencies
+pip3 install -U funasr
+pip install fastapi uvicorn
+
 # activate the virtual environment (this can be ignored if you are using a global Python installation)
 source asr_tts_env/Scripts/activate
 
