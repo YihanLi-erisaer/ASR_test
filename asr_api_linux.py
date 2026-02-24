@@ -9,7 +9,7 @@ from threading import Lock
 import gc
 import ctypes
 
-app = FastAPI(title="ASR Model Service (Memory Optimized)")
+app = FastAPI(title="ASR Model Service on Linux (Memory Optimized)")
 
 # ==============================
 # 内存强制释放黑科技 (针对 Linux)

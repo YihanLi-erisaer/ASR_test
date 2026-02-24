@@ -7,8 +7,9 @@ import multiprocessing
 from fastapi import FastAPI, File, UploadFile, Form
 import torch
 from funasr import AutoModel
+import re
 
-app = FastAPI(title="ASR Windows 彻底释放内存版")
+app = FastAPI(title="ASR on Windows with complete process isolation")
 
 SUPPORTED_MODELS = {
     "funasr": "FunAudioLLM/Fun-ASR-Nano-2512",
@@ -51,8 +52,21 @@ def inference_worker(model_key, audio_path, return_dict):
             use_itn=True,
         )
         
-        # 4. 传回结果
-        return_dict["result"] = result[0] if result else ""
+# 4. 传回结果
+        if result and isinstance(result, list) and len(result) > 0:
+            first_item = result[0]
+            if isinstance(first_item, dict) and "text" in first_item:
+                raw_text = first_item["text"]
+                
+                # --- 新增：使用正则去除 <|...|> 格式的标签 ---
+                # 这个正则会匹配所有以 <| 开头，以 |> 结尾的内容并将其替换为空
+                clean_text = re.sub(r"<\|.*?\|>", "", raw_text)
+                
+                return_dict["result"] = clean_text.strip() # .strip() 去掉首尾多余空格
+            else:
+                return_dict["result"] = str(first_item)
+        else:
+            return_dict["result"] = ""
         print(f"🧬 Subprocess: Inference complete.")
 
     except Exception as e:
