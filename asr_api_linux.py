@@ -12,7 +12,7 @@ import ctypes
 app = FastAPI(title="ASR Model Service on Linux (Memory Optimized)")
 
 # ==============================
-# 内存强制释放黑科技 (针对 Linux)
+# Linux memory management utilities
 # ==============================
 def force_release_memory():
     """强制将内存归还给操作系统"""
@@ -29,9 +29,7 @@ def force_release_memory():
     except Exception as e:
         print(f"⚠️ malloc_trim not available: {e}")
 
-# ==============================
-# 全局变量
-# ==============================
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 models = {}  # 模型缓存
 model_lock = Lock()
@@ -46,13 +44,13 @@ SUPPORTED_MODELS = {
 }
 
 # ==============================
-# 卸载逻辑
+# model unloading utilities
 # ==============================
 
 def unload_all_models():
     print("🔴 Unloading ALL models")
     global models
-    # 彻底清空字典
+    # delete dicts
     model_names = list(models.keys())
     for name in model_names:
         model = models.pop(name)
@@ -72,7 +70,7 @@ def unload_specific_model(model_name: str):
     return False
 
 # ==============================
-# 模型加载（增加资源管理）
+# load model utility (with locking)
 # ==============================
 
 def get_model(model_name: str):
@@ -84,7 +82,7 @@ def get_model(model_name: str):
         return models[model_name]
 
     with model_lock:
-        # 如果内存极度紧张，可以在加载新模型前先卸载其他模型（取消下面一行的注释）
+        # if the memory is too tight, we can choose to unload all other models before loading a new one
         # unload_all_models() 
 
         print(f"🔵 Loading model: {model_name} onto {device}...")
@@ -102,7 +100,7 @@ def get_model(model_name: str):
             raise e
 
 # ==============================
-# 接口部分
+# api endpoints
 # ==============================
 
 @app.get("/")
@@ -119,7 +117,7 @@ async def transcribe_audio(
     try:
         model_instance = get_model(model)
 
-        # 1. 保存文件并及时释放字节流内存
+        
         file_bytes = await file.read()
         with open(temp_filename, "wb") as f:
             f.write(file_bytes)
@@ -127,7 +125,7 @@ async def transcribe_audio(
         
         loop = asyncio.get_event_loop()
 
-        # 2. 推理逻辑
+        
         common_args = {
             "input": temp_filename,
             "use_vad": True,
@@ -146,7 +144,7 @@ async def transcribe_audio(
             lambda: model_instance.generate(**inference_args)
         )
 
-        # 3. 这里的 result 通常是 list，取第一个元素
+        
         transcription = result[0] if result else ""
 
         return {
@@ -159,10 +157,8 @@ async def transcribe_audio(
         return {"error": str(e)}
 
     finally:
-        # 4. 彻底清理临时文件和多余引用
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-        # 每轮请求后不一定需要 unload 模型，但可以手动 gc 一次
         gc.collect()
 
 @app.post("/unload/")
